@@ -1,12 +1,11 @@
-#import tkinter as tk
+import tkinter as tk
 #from tkinter import ttk
-import customtkinter as ctk
-#import ttkbootstrap as ttk
+import ttkbootstrap as ttk
 
 class Window:
     def __init__(self, data_manager, user_settings):
         # init window
-        self.window = ctk.CTk()
+        self.window = ttk.Window(themename="darkly")
         self.window.title("Workout Tracker")
         self.window.geometry(f"{int(self.window.winfo_screenwidth() * 0.6)}x{int(self.window.winfo_screenheight() * 0.6)}")
         # variables for data manager and user settings
@@ -32,20 +31,15 @@ class Window:
 
     def tabs(self):
         # Create tabs
-        tabs = ctk.CTkTabview(self.window, anchor='nw')
-        #data_input = ctk.CTkFrame(tabs)
-        #data_graphing = ctk.CTkFrame(tabs)
-        #settings_tab = ctk.CTkFrame(tabs)
-
-        # CTk Tabs
-        tabs.add("Data Input")
-        tabs.add("Data Graphing")
-        tabs.add("Settings")
+        tabs = ttk.Notebook(self.window)
+        data_input = ttk.Frame(tabs)
+        data_graphing = ttk.Frame(tabs)
+        settings_tab = ttk.Frame(tabs)
 
         # Add tabs
-        #tabs.add(data_input, text="Data Input")
-        #tabs.add(data_graphing, text="Data Graphing")
-        #tabs.add(settings_tab, text="Settings")
+        tabs.add(data_input, text="Data Input")
+        tabs.add(data_graphing, text="Data Graphing")
+        tabs.add(settings_tab, text="Settings")
 
         # Pack tabs
         tabs.pack(expand=True, fill='both')
