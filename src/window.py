@@ -1,4 +1,4 @@
-import tkinter as tk
+#import tkinter as tk
 #from tkinter import ttk
 import ttkbootstrap as ttk
 
@@ -32,20 +32,28 @@ class Window:
     def tabs(self):
         # Create tabs
         tabs = ttk.Notebook(self.window)
-        data_input = ttk.Frame(tabs)
-        data_graphing = ttk.Frame(tabs)
-        settings_tab = ttk.Frame(tabs)
+        self.data_input = ttk.Frame(tabs)
+        self.data_graphing = ttk.Frame(tabs)
+        self.settings_tab = ttk.Frame(tabs)
 
         # Add tabs
-        tabs.add(data_input, text="Data Input")
-        tabs.add(data_graphing, text="Data Graphing")
-        tabs.add(settings_tab, text="Settings")
+        tabs.add(self.data_input, text="Data Input")
+        tabs.add(self.data_graphing, text="Data Graphing")
+        tabs.add(self.settings_tab, text="Settings")
 
         # Pack tabs
         tabs.pack(expand=True, fill='both')
 
     def data_input_widgets(self):
-        pass
+        # Create Frames
+        add_exercise = ttk.LabelFrame(self.data_input, text="Add New Exercise", bootstyle="warning")
+        input_frame = ttk.LabelFrame(self.data_input, text="Add each exercise for selected date", bootstyle="info")
+        treeview_frame = ttk.LabelFrame(self.data_input, text="Exercises submitted for selected date", bootstyle="info")
+
+        # Place frames
+        add_exercise.place(relx=0, rely=0, relheight=0.2, relwidth=0.4)
+        input_frame.place(relx=0, rely=0.2, relheight=0.8, relwidth=0.4)
+        treeview_frame.place(relx=0.41, rely=0, relheight=1, relwidth=0.59)
 
     def data_graphing_widgets(self):
         pass
