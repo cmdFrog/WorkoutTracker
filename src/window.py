@@ -8,6 +8,7 @@ class Window:
         self.window = ttk.Window(themename="darkly")
         self.window.title("Workout Tracker")
         self.window.geometry(f"{int(self.window.winfo_screenwidth() * 0.6)}x{int(self.window.winfo_screenheight() * 0.6)}")
+        #self.window.minsize(height=int(self.window.winfo_screenheight() * 0.6), width=int(self.window.winfo_screenwidth() * 0.6))
         # variables for data manager and user settings
         self.data_manager = data_manager
         self.user_settings = user_settings
@@ -46,14 +47,99 @@ class Window:
 
     def data_input_widgets(self):
         # Create Frames
-        add_exercise = ttk.LabelFrame(self.data_input, text="Add New Exercise", bootstyle="warning")
-        input_frame = ttk.LabelFrame(self.data_input, text="Add each exercise for selected date", bootstyle="info")
-        treeview_frame = ttk.LabelFrame(self.data_input, text="Exercises submitted for selected date", bootstyle="info")
+        add_exercise = ttk.LabelFrame(self.data_input, text="Add New Exercise To Dropdown", bootstyle="info")
+        input_frame = ttk.LabelFrame(self.data_input, text="Add Each Exercise For Selected Date", bootstyle="info")
+        treeview_frame = ttk.LabelFrame(self.data_input, text="Exercises Submitted For Selected Date", bootstyle="info")
+        treeview_date_frame = ttk.LabelFrame(self.data_input, text="Selected Date", bootstyle="info")
 
         # Place frames
         add_exercise.place(relx=0, rely=0, relheight=0.2, relwidth=0.4)
         input_frame.place(relx=0, rely=0.2, relheight=0.8, relwidth=0.4)
-        treeview_frame.place(relx=0.41, rely=0, relheight=1, relwidth=0.59)
+        treeview_frame.place(relx=0.41, rely=0, relheight=0.9, relwidth=0.59)
+        treeview_date_frame.place(relx=0.41, rely=0.9, relheight=0.1, relwidth=0.59)
+
+        # add_exercise frame widgets
+        exercise_entry = ttk.Entry(add_exercise)
+        exercise_button = ttk.Button(add_exercise, text="Submit Exercise")
+
+        # place add_exercise widgets
+        add_exercise.columnconfigure(0, pad=20, weight=1)
+        add_exercise.rowconfigure(0, pad=10, weight=1)
+        add_exercise.rowconfigure(1, pad=10, weight=1)
+        # exercise_entry.place(relx=0.5, rely=0.4, anchor='center',relwidth=0.5)
+        # exercise_button.place(relx=0.5, rely=0.65, anchor='center',relwidth=0.25)
+        exercise_entry.grid(row=0, column=0, sticky='ew', padx=20)
+        exercise_button.grid(row=1, column=0)
+
+        # input_frame widgets
+        date_label = ttk.Label(input_frame, text="Select Date:", font="Helvetica 10 bold")
+        date_entry = ttk.DateEntry(input_frame)
+
+        select_exercise_label = ttk.Label(input_frame, text="Select Exercise:", font="Helvetica 10 bold")
+        exercise_dropdown = ttk.Combobox(input_frame, state="readonly", font="Helvetica 10 bold")
+        items = ("test1", "test2", "test3", "test4")
+        exercise_dropdown['values'] = items
+
+        weight_label = ttk.Label(input_frame, text="Enter Weight:", font="Helvetica 10 bold")
+        weight_entry = ttk.Entry(input_frame)
+
+        reps_label = ttk.Label(input_frame, text="Enter Reps:", font="Helvetica 10 bold")
+        reps_entry = ttk.Entry(input_frame)
+
+        data_submit_button = ttk.Button(input_frame, text="Submit")
+
+        # place input_frame widgets
+        input_frame.columnconfigure(0, pad = 10, weight=1)
+        input_frame.columnconfigure(1, pad = 10, weight=1)
+        input_frame.rowconfigure(0, pad = 10, weight = 2)
+        input_frame.rowconfigure(1, pad = 10, weight = 2)
+        input_frame.rowconfigure(2, pad = 10, weight = 2)
+        input_frame.rowconfigure(3, pad = 10, weight = 2)
+        input_frame.rowconfigure(4, pad = 10, weight = 2)
+
+        date_label.grid(row=0, column=0)
+        date_entry.grid(row=0, column=1)
+        select_exercise_label.grid(row=1, column=0)
+        exercise_dropdown.grid(row=1, column=1)
+        weight_label.grid(row=2, column=0)
+        weight_entry.grid(row=2, column=1)
+        reps_label.grid(row=3, column=0)
+        reps_entry.grid(row=3, column=1)
+        data_submit_button.grid(row=4, column=0, columnspan=2, sticky="ew", padx=20)
+
+        # create treeview widgets
+        tree_style = ttk.Style()
+        tree_style.configure("Treeview.Heading", font="Helvetica 15 bold", relief="groove")
+        tree_style.configure("Treeview.Cell", font="Helvetica 12 bold")
+        tree_style.configure("Treeview", rowheight=30)
+        workouts_table = ttk.Treeview(treeview_frame, columns=("exercise", "weight", "reps"), show="headings")
+        workouts_table.heading("exercise", text="Exercise", anchor="center")
+        workouts_table.heading("weight", text="Weight", anchor="center")
+        workouts_table.heading("reps", text="Reps", anchor="center")
+        workouts_table.column("exercise", anchor="center")
+        workouts_table.column("weight", anchor="center")
+        workouts_table.column("reps", anchor="center")
+
+        tree_scroll = ttk.Scrollbar(treeview_frame, command=workouts_table.yview)
+        workouts_table.configure(yscrollcommand=tree_scroll.set)
+
+        # workouts_table.insert(parent = "", index=0, values=("Goofing Around", "100", "1000"))
+        # for _ in range(0, 100):
+        #     workouts_table.insert(parent = "", index=0, values=("Goofing Around", "100", "1000"))
+
+
+        # place treeview widgets
+        workouts_table.pack(fill='both', expand=True, side="left")
+        tree_scroll.pack(side="left", fill="both")
+
+        # create and pack Label for treeview date
+        selected_date_label = ttk.Label(treeview_date_frame, text="Placeholder", font="Helvetica 15 bold")
+        selected_date_label.pack(anchor="center")
 
     def data_graphing_widgets(self):
         pass
+
+    def validate_number_only(self, new_value):
+        if new_value.isdigit() or new_value == "":
+            return True
+        return False
