@@ -16,11 +16,21 @@ class DataManager:
     def save_data(self):
         with open(self.filename, "w") as file:
             json.dump(self.data, file)
+        # Reload the in memory data
+        self.data = self.load_data()
 
     def add_exercise_name(self, exercise_name):
-        if exercise_name not in self.data["exercises"]:
+        # Check if the lowercase exercise name is not in the list (also in lowercase)
+        if exercise_name.lower() not in [exercise.lower() for exercise in self.data["exercises"]]:
+            # Add the exercise name as is
             self.data["exercises"].append(exercise_name)
+            # Save the updated data
             self.save_data()
+
+    def remove_exercise_name(self, exercise_name):
+        self.data["exercises"].remove(exercise_name)
+        # Save the updated data
+        self.save_data()
 
     def get_exercises(self):
         return self.data.get("exercises", [])
@@ -30,6 +40,10 @@ class DataManager:
             self.data["data"][date] = {}
         self.data["data"][date][exercise_name] = {"reps": reps, "weight": weight}
         self.save_data()
+
+    def remove_exercise_entry(self, date, exercise_name):
+        if date in self.data["data"]:
+            del self.data["data"][date][exercise_name]
 
     def get_data(self, date):
         return self.data.get("data", {}).get(date, {})
