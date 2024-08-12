@@ -1,5 +1,6 @@
 #import tkinter as tk
 #from tkinter import ttk
+from datetime import datetime
 import ttkbootstrap as ttk
 
 class Window:
@@ -12,6 +13,7 @@ class Window:
         # variables for data manager and user settings
         self.data_manager = data_manager
         self.user_settings = user_settings
+        self.exercise_items = self.data_manager.get_exercises()
         # apply settings to window and style
         #self.set_settings()
         # create tabs
@@ -59,26 +61,27 @@ class Window:
         treeview_date_frame.place(relx=0.41, rely=0.9, relheight=0.1, relwidth=0.59)
 
         # add_exercise frame widgets
-        exercise_entry = ttk.Entry(add_exercise)
-        exercise_button = ttk.Button(add_exercise, text="Submit Exercise")
+        self.exercise_entry = ttk.Entry(add_exercise)
+        self.exercise_button = ttk.Button(add_exercise, text="Submit Exercise", command=self.add_exercise_to_database)
 
         # place add_exercise widgets
         add_exercise.columnconfigure(0, pad=20, weight=1)
         add_exercise.rowconfigure(0, pad=10, weight=1)
         add_exercise.rowconfigure(1, pad=10, weight=1)
-        # exercise_entry.place(relx=0.5, rely=0.4, anchor='center',relwidth=0.5)
-        # exercise_button.place(relx=0.5, rely=0.65, anchor='center',relwidth=0.25)
-        exercise_entry.grid(row=0, column=0, sticky='ew', padx=20)
-        exercise_button.grid(row=1, column=0)
+        self.exercise_entry.grid(row=0, column=0, sticky='ew', padx=20)
+        self.exercise_button.grid(row=1, column=0)
 
         # input_frame widgets
-        date_label = ttk.Label(input_frame, text="Select Date:", font="Helvetica 10 bold")
-        date_entry = ttk.DateEntry(input_frame)
+        self.date_label = ttk.Label(input_frame, text="Select Date:", font="Helvetica 10 bold")
+        self.date_entry = ttk.DateEntry(input_frame)
+        # self.date_entry.bind("<<DateEntrySelected>>", self.update_date_label)
+        date_var = ttk.StringVar()
+        date_var.trace_add("write", lambda name, index, mode, date_var = date_var: self.update_date_label(date_var))
+        self.date_entry.entry.configure(textvariable=date_var)
 
         select_exercise_label = ttk.Label(input_frame, text="Select Exercise:", font="Helvetica 10 bold")
         exercise_dropdown = ttk.Combobox(input_frame, state="readonly", font="Helvetica 10 bold")
-        items = ("test1", "test2", "test3", "test4")
-        exercise_dropdown['values'] = items
+        exercise_dropdown['values'] = self.exercise_items
 
         weight_label = ttk.Label(input_frame, text="Enter Weight:", font="Helvetica 10 bold")
         weight_entry = ttk.Entry(input_frame)
@@ -97,8 +100,8 @@ class Window:
         input_frame.rowconfigure(3, pad = 10, weight = 2)
         input_frame.rowconfigure(4, pad = 10, weight = 2)
 
-        date_label.grid(row=0, column=0)
-        date_entry.grid(row=0, column=1)
+        self.date_label.grid(row=0, column=0)
+        self.date_entry.grid(row=0, column=1)
         select_exercise_label.grid(row=1, column=0)
         exercise_dropdown.grid(row=1, column=1)
         weight_label.grid(row=2, column=0)
@@ -133,8 +136,24 @@ class Window:
         tree_scroll.pack(side="left", fill="both")
 
         # create and pack Label for treeview date
-        selected_date_label = ttk.Label(treeview_date_frame, text="Placeholder", font="Helvetica 15 bold")
-        selected_date_label.pack(anchor="center")
+        self.selected_date_label = ttk.Label(treeview_date_frame, text="", font="Helvetica 15 bold")
+        self.selected_date_label.pack(anchor="center")
+
+    def update_date_label(self, var):
+        selected_date = var.get()
+        if selected_date == "":
+            return
+        date_object = datetime.strptime(selected_date, "%m/%d/%Y")
+        formated_date = date_object.strftime("%A, %b %d")
+        self.selected_date_label.config(text=f"Selected Date: {formated_date}")
+
+    def add_exercise_to_database(self):
+        exercise_name = self.exercise_entry.get()
+        if exercise_name:
+            self.data_manager.add_exercise_name(exercise_name)
+            self.exercise_items = self.data_manager.get_exercises()
+        return
+
 
     def data_graphing_widgets(self):
         pass
