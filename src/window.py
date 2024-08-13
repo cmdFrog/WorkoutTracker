@@ -2,6 +2,8 @@
 #from tkinter import ttk
 from datetime import datetime
 import ttkbootstrap as ttk
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class Window:
     def __init__(self, data_manager, user_settings):
@@ -22,6 +24,7 @@ class Window:
         self.data_input_widgets()
         # widgets for data_graphing tab
         self.data_graphing_widgets()
+        self.settings_widgets()
 
     def run(self):
         self.window.mainloop()
@@ -214,8 +217,62 @@ class Window:
             self.data_manager.remove_exercise_entry(date=str(date), exercise_name=str(exercise))
             self.data_manager.save_data()
 
+    def on_tab_switch(self, event):
+        selected_tab = event.widget.select()
+        tab_text = event.widget.tab(selected_tab, "text")
+        if tab_text == "Data Graphing":
+            self.data_graphing_widgets()
+
 
     def data_graphing_widgets(self):
+        # create frames
+        graph_frame = ttk.LabelFrame(self.data_graphing, text="Graph Display", bootstyle="info")
+        graph_settings = ttk.LabelFrame(self.data_graphing, text="Graph Settings", bootstyle="info")
+
+        # place frames
+        graph_frame.place(relx=0, rely=0, relheight=0.9, relwidth=1)
+        graph_settings.place(relx=0, rely=0.9, relheight=0.1, relwidth=1)
+
+        # settings widgets
+        self.from_date = ttk.StringVar
+        self.to_date = ttk.StringVar
+        self.date_entry_from = ttk.DateEntry(graph_settings)
+        self.date_entry_to = ttk.DateEntry(graph_settings)
+        self.date_entry_from.entry.configure(textvariable=self.from_date)
+        self.date_entry_to.entry.configure(textvariable=self.to_date)
+        dash_label = ttk.Label(graph_settings, text=">>>", font="Helvetica 15 bold")
+
+        # Place settings widgets
+
+        self.date_entry_from.pack(side="left", fill="both", padx=10)
+        dash_label.pack(side="left", fill="both", padx=10)
+        self.date_entry_to.pack(side="left", fill="both", padx=10)
+
+
+        # Add trace to date entries
+        #self.date_var.trace_add("write", lambda name, index, mode, date_var = self.from_date: #self.update_date(self.date_var))
+        #self.date_var.trace_add("write", lambda name, index, mode, date_var = self.to_date: #self.update_date(self.date_var))
+
+
+
+        # Create and pack Graph Widget
+        fig = Figure(dpi=100)
+        ax = fig.add_subplot(111)
+        x = [0, 1, 2, 3, 4, 5]
+        y = [0, 1, 4, 9, 16, 25]
+        ax.plot(x, y)
+        ax.set_xlabel("Time axis")
+        ax.set_ylabel("Weight/Reps axis")
+        ax.set_title("Weight/Reps Over Time")
+        ax.invert_xaxis()
+        fig.set_facecolor('dimgrey')
+        ax.set_facecolor('grey')
+
+        g_canvas = FigureCanvasTkAgg(fig, master=graph_frame)
+        g_canvas.draw()
+        g_canvas.get_tk_widget().pack(fill="both", expand=True)
+
+    def settings_widgets(self):
         pass
 
     def validate_number_only(self, new_value):
