@@ -1,10 +1,13 @@
 from datetime import datetime
 import json
+import os
 
 # pylint: disable=unspecified-encoding
 class DataManager:
     def __init__(self, filename="exercise_data.json"):
-        self.filename = filename
+        # Determine the path to the WorkoutTracker folder (one level up)
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.filename = os.path.join(project_root, filename)
         self.data = self.load_data()
 
     def load_data(self):
@@ -72,8 +75,9 @@ class DataManager:
 # Currently unused until Settings features implemented
 class SettingsManager:
     def __init__(self, filename="user_settings.json"):
-        self.default_settings = "default_settings.json"
-        self.filename = filename
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.default_settings = os.path.join(project_root, "default_settings.json")
+        self.filename = os.path.join(project_root, filename)
         self.data = self.load_data()
 
     def load_data(self):
