@@ -1,5 +1,3 @@
-#import tkinter as tk
-#from tkinter import ttk
 from datetime import datetime
 import ttkbootstrap as ttk
 from matplotlib.figure import Figure
@@ -18,24 +16,18 @@ class Window:
         self.data_manager = data_manager
         self.user_settings = user_settings
         self.exercise_items = self.data_manager.get_exercises()
-        # apply settings to window and style
-        #self.set_settings()
         # create tabs
         self.tabs()
         # widgets for data_input tab
         self.data_input_widgets()
         # widgets for data_graphing tab
         self.data_graphing_widgets()
+        # Settings menu, not implemented.
         self.settings_widgets()
 
     def run(self):
         self.window.mainloop()
         print("Window closed")
-
-    #def set_settings(self):
-        #self.window.configure(bg=self.user_settings.get_data("bg_color"))
-        #self.fr_style = ttk.Style()
-        #self.fr_style.configure("TFrame", background=self.user_settings.get_data("bg_color"))
 
     def tabs(self):
         # Create tabs
@@ -155,6 +147,73 @@ class Window:
         self.entry_remove_button = ttk.Button(treeview_date_frame, text="Delete Selection", command=self.remove_exercise_info_from_db)
         self.entry_remove_button.pack(anchor="center")
 
+
+    def data_graphing_widgets(self):
+        # create frames
+        graph_frame = ttk.LabelFrame(self.data_graphing, text="Graph Display", bootstyle="info")
+        graph_settings = ttk.LabelFrame(self.data_graphing, text="Graph Settings", bootstyle="info")
+
+        # place frames
+        graph_frame.place(relx=0, rely=0, relheight=0.9, relwidth=1)
+        graph_settings.place(relx=0, rely=0.9, relheight=0.1, relwidth=1)
+
+        # Create settings widgets
+
+        # vars
+        self.from_date = ttk.StringVar()
+        self.to_date = ttk.StringVar()
+        self.plot_weight_var = ttk.IntVar(value=1)
+        self.plot_reps_var = ttk.IntVar(value=1)
+
+        # Date Entires
+        self.date_entry_from = ttk.DateEntry(graph_settings)
+        self.date_entry_to = ttk.DateEntry(graph_settings)
+
+        # From/To Date variable traced to from_to_date_exercises and set them as appropriate text variables in date entries
+        self.from_date.trace_add("write", lambda name, index, mode, from_date = self.from_date: self.from_to_date_exercises(self.from_date))
+        self.to_date.trace_add("write", lambda name, index, mode, to_date = self.to_date: self.from_to_date_exercises(self.to_date))
+        self.date_entry_from.entry.configure(textvariable=self.from_date)
+        self.date_entry_to.entry.configure(textvariable=self.to_date)
+
+        # Plot Checkboxes
+        weight_checkbox = ttk.Checkbutton(graph_settings, text="Plot Weight", variable=self.plot_weight_var, command=self.plot_selected_exercise)
+        reps_checkbox = ttk.Checkbutton(graph_settings, text="Plot Reps", variable=self.plot_reps_var, command=self.plot_selected_exercise)
+
+        # Labels
+        dash_label = ttk.Label(graph_settings, text=">>>", font="Helvetica 15 bold")
+        dropdown_label = ttk.Label(graph_settings, text="Choose Exercise:", font="Helvetica 12 bold")
+
+        # Exercises Dropdown
+        self.exercise_dropdown2 = ttk.Combobox(graph_settings, state="readonly", font="Helvetica 10 bold")
+        self.exercise_dropdown2.bind("<<ComboboxSelected>>", self.plot_selected_exercise)
+
+        # Pack settings widgets
+
+        self.date_entry_from.pack(side="left", fill="both", padx=10)
+        dash_label.pack(side="left", fill="both", padx=10)
+        self.date_entry_to.pack(side="left", fill="both", padx=10)
+        weight_checkbox.pack(side="left", fill="both", padx=5)
+        reps_checkbox.pack(side="left", fill="both", padx=5)
+        dropdown_label.pack(side="left", fill="both", padx=5)
+        self.exercise_dropdown2.pack(side="left", padx=10)
+
+        # Create and pack Graph Widget
+        self.fig = Figure(dpi=100)
+        self.ax = self.fig.add_subplot(111)
+        self.ax.set_xlabel("Time axis")
+        self.ax.set_ylabel("Weight/Reps axis")
+        self.ax.set_title("Weight/Reps Over Time")
+        self.ax.invert_xaxis()
+        self.fig.set_facecolor('dimgrey')
+        self.ax.set_facecolor('grey')
+
+        self.g_canvas = FigureCanvasTkAgg(self.fig, master=graph_frame)
+        self.g_canvas.draw()
+        self.g_canvas.get_tk_widget().pack(fill="both", expand=True)
+
+    def settings_widgets(self):
+        pass
+
     def update_date(self, var):
         selected_date = var.get()
         if selected_date == "":
@@ -240,7 +299,6 @@ class Window:
                 if exercise not in seen_exercises:
                     exercises.append(exercise)
                     seen_exercises.add(exercise)
-
             # Update the exercise dropdown with the unique exercise names
             self.exercise_dropdown2['values'] = exercises
             # Clear dropdown if new date range doesn't have currently chosen exercise
@@ -303,66 +361,9 @@ class Window:
             self.ax.legend()
             self.g_canvas.draw()
 
-    def data_graphing_widgets(self):
-        # create frames
-        graph_frame = ttk.LabelFrame(self.data_graphing, text="Graph Display", bootstyle="info")
-        graph_settings = ttk.LabelFrame(self.data_graphing, text="Graph Settings", bootstyle="info")
-
-        # place frames
-        graph_frame.place(relx=0, rely=0, relheight=0.9, relwidth=1)
-        graph_settings.place(relx=0, rely=0.9, relheight=0.1, relwidth=1)
-
-        # settings widgets
-        # vars
-        self.from_date = ttk.StringVar()
-        self.to_date = ttk.StringVar()
-        self.plot_weight_var = ttk.IntVar(value=1)
-        self.plot_reps_var = ttk.IntVar(value=1)
-        # Date Entires
-        self.date_entry_from = ttk.DateEntry(graph_settings)
-        self.date_entry_to = ttk.DateEntry(graph_settings)
-        # Reace from and to date vars to from_to_date_exercises
-        self.from_date.trace_add("write", lambda name, index, mode, from_date = self.from_date: self.from_to_date_exercises(self.from_date))
-        self.to_date.trace_add("write", lambda name, index, mode, to_date = self.to_date: self.from_to_date_exercises(self.to_date))
-        self.date_entry_from.entry.configure(textvariable=self.from_date)
-        self.date_entry_to.entry.configure(textvariable=self.to_date)
-        # Plot Checkboxes
-        weight_checkbox = ttk.Checkbutton(graph_settings, text="Plot Weight", variable=self.plot_weight_var, command=self.plot_selected_exercise)
-        reps_checkbox = ttk.Checkbutton(graph_settings, text="Plot Reps", variable=self.plot_reps_var, command=self.plot_selected_exercise)
-        # Labels
-        dash_label = ttk.Label(graph_settings, text=">>>", font="Helvetica 15 bold")
-        dropdown_label = ttk.Label(graph_settings, text="Choose Exercise:", font="Helvetica 12 bold")
-        # Exercises Dropdown
-        self.exercise_dropdown2 = ttk.Combobox(graph_settings, state="readonly", font="Helvetica 10 bold")
-        self.exercise_dropdown2.bind("<<ComboboxSelected>>", self.plot_selected_exercise)
-
-        # Place settings widgets
-        self.date_entry_from.pack(side="left", fill="both", padx=10)
-        dash_label.pack(side="left", fill="both", padx=10)
-        self.date_entry_to.pack(side="left", fill="both", padx=10)
-        weight_checkbox.pack(side="left", fill="both", padx=5)
-        reps_checkbox.pack(side="left", fill="both", padx=5)
-        dropdown_label.pack(side="left", fill="both", padx=5)
-        self.exercise_dropdown2.pack(side="left", padx=10)
-
-        # Create and pack Graph Widget
-        self.fig = Figure(dpi=100)
-        self.ax = self.fig.add_subplot(111)
-        self.ax.set_xlabel("Time axis")
-        self.ax.set_ylabel("Weight/Reps axis")
-        self.ax.set_title("Weight/Reps Over Time")
-        self.ax.invert_xaxis()
-        self.fig.set_facecolor('dimgrey')
-        self.ax.set_facecolor('grey')
-
-        self.g_canvas = FigureCanvasTkAgg(self.fig, master=graph_frame)
-        self.g_canvas.draw()
-        self.g_canvas.get_tk_widget().pack(fill="both", expand=True)
-
-    def settings_widgets(self):
-        pass
-
     def validate_number_only(self, new_value):
-        if new_value.isdigit() or new_value == "":
+        if new_value.isdigit() and len(new_value) <= 4:
+            return True
+        if new_value == "":
             return True
         return False

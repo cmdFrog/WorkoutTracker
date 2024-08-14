@@ -69,6 +69,7 @@ class DataManager:
 
         return data_in_range
 
+# Currently unused until Settings features implemented
 class SettingsManager:
     def __init__(self, filename="user_settings.json"):
         self.default_settings = "default_settings.json"
