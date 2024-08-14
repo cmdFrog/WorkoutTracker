@@ -5,6 +5,7 @@ import ttkbootstrap as ttk
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.dates import DateFormatter
+from matplotlib.ticker import MaxNLocator
 
 class Window:
     def __init__(self, data_manager, user_settings):
@@ -295,6 +296,9 @@ class Window:
                 # Format x-axis for dates
                 self.ax.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
                 self.fig.autofmt_xdate()
+
+                # Format y-axis
+                self.ax.yaxis.set_major_locator(MaxNLocator(nbins=20))
 
             self.ax.legend()
             self.g_canvas.draw()
