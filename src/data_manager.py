@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 
 # pylint: disable=unspecified-encoding
@@ -47,6 +48,26 @@ class DataManager:
 
     def get_data(self, date):
         return self.data.get("data", {}).get(date, {})
+
+    def get_data_in_range(self, from_date, to_date):
+        data_in_range = []
+
+        from_date = datetime.strptime(from_date, "%m/%d/%Y")
+        to_date = datetime.strptime(to_date, "%m/%d/%Y")
+
+        for date_str, exercises in self.data.get("data", {}).items():
+            # Convert the date string in the data to a datetime object
+            date = datetime.strptime(date_str, "%m/%d/%Y")
+            if from_date <= date <= to_date:
+                for exercise_name, exercise_data in exercises.items():
+                    # Append relevant data
+                    data_in_range.append({
+                        "date": date_str,
+                        "exercise": exercise_name,
+                        **exercise_data
+                    })
+
+        return data_in_range
 
 class SettingsManager:
     def __init__(self, filename="user_settings.json"):

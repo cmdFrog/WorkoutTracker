@@ -4,6 +4,7 @@ from datetime import datetime
 import ttkbootstrap as ttk
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.dates import DateFormatter
 
 class Window:
     def __init__(self, data_manager, user_settings):
@@ -143,7 +144,6 @@ class Window:
         # for _ in range(0, 100):
         #     workouts_table.insert(parent = "", index=0, values=("Goofing Around", "100", "1000"))
 
-
         # place treeview widgets
         self.workouts_table.pack(fill='both', expand=True, side="left")
         tree_scroll.pack(side="left", fill="both")
@@ -171,7 +171,6 @@ class Window:
                 reps_value = details.get("reps", "N/A")
                 weight_value = details.get("weight", "N/A")
                 self.workouts_table.insert(parent="", index=0, values=(exercise, weight_value, reps_value))
-
 
     def add_exercise_to_database(self, _=None):
         exercise_name = self.exercise_entry.get()
@@ -223,6 +222,82 @@ class Window:
         if tab_text == "Data Graphing":
             self.data_graphing_widgets()
 
+    def from_to_date_exercises(self, _=None):
+        # Get the date range from the StringVars
+        from_date = self.from_date.get()
+        to_date = self.to_date.get()
+
+        if from_date and to_date:
+            # Call the data_manager method to get data within the date range
+            data_in_range = self.data_manager.get_data_in_range(from_date, to_date)
+
+            # Extract unique exercise names while preserving the order
+            exercises = []
+            seen_exercises = set()
+            for entry in data_in_range:
+                exercise = entry['exercise']
+                if exercise not in seen_exercises:
+                    exercises.append(exercise)
+                    seen_exercises.add(exercise)
+
+            # Update the exercise dropdown with the unique exercise names
+            self.exercise_dropdown2['values'] = exercises
+            # Clear dropdown if new date range doesn't have currently chosen exercise
+            if self.exercise_dropdown2.get() not in exercises:
+                self.exercise_dropdown2.set('')
+            # Plot exercise if value already chosen
+            if self.exercise_dropdown2.get():
+                self.plot_selected_exercise()
+
+    def plot_selected_exercise(self, _=None):
+        exercise = self.exercise_dropdown2.get()
+        from_date = self.from_date.get()
+        to_date = self.to_date.get()
+
+        if exercise and from_date and to_date:
+            data = self.data_manager.get_data_in_range(from_date, to_date)
+
+            # Filter data for the selected exercise
+            filtered_data = [entry for entry in data if entry['exercise'] == exercise]
+
+            # Clear previous plots
+            self.ax.clear()
+            self.ax.set_xlabel("Date")
+            self.ax.set_ylabel("Value")
+            self.ax.set_title(f"{exercise} - Weight/Reps Over Time")
+
+            dates = [datetime.strptime(entry['date'], "%m/%d/%Y") for entry in filtered_data]
+
+            y_values = []
+            if self.plot_weight_var.get():
+                weights = [int(entry['weight']) for entry in filtered_data]
+                self.ax.plot(dates, weights, label="Weight", color='blue', marker='o')
+                y_values.extend(weights)
+
+            if self.plot_reps_var.get():
+                reps = [int(entry['reps']) for entry in filtered_data]
+                self.ax.plot(dates, reps, label="Reps", color='red', marker='o')
+                y_values.extend(reps)
+
+            if y_values:
+                min_y = min(y_values)
+                max_y = max(y_values)
+
+                # Set y-axis limits
+                self.ax.set_ylim(min_y - 1, max_y + 1)
+
+                # Set y-axis ticks to display all values in the range
+                self.ax.set_yticks(range(min_y, max_y + 1))
+
+                # Add grid
+                self.ax.grid(True, which='both', linestyle='--', linewidth=0.5, color='whitesmoke', alpha=0.7)
+
+                # Format x-axis for dates
+                self.ax.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
+                self.fig.autofmt_xdate()
+
+            self.ax.legend()
+            self.g_canvas.draw()
 
     def data_graphing_widgets(self):
         # create frames
@@ -234,43 +309,51 @@ class Window:
         graph_settings.place(relx=0, rely=0.9, relheight=0.1, relwidth=1)
 
         # settings widgets
-        self.from_date = ttk.StringVar
-        self.to_date = ttk.StringVar
+        # vars
+        self.from_date = ttk.StringVar()
+        self.to_date = ttk.StringVar()
+        self.plot_weight_var = ttk.IntVar(value=1)
+        self.plot_reps_var = ttk.IntVar(value=1)
+        # Date Entires
         self.date_entry_from = ttk.DateEntry(graph_settings)
         self.date_entry_to = ttk.DateEntry(graph_settings)
+        # Reace from and to date vars to from_to_date_exercises
+        self.from_date.trace_add("write", lambda name, index, mode, from_date = self.from_date: self.from_to_date_exercises(self.from_date))
+        self.to_date.trace_add("write", lambda name, index, mode, to_date = self.to_date: self.from_to_date_exercises(self.to_date))
         self.date_entry_from.entry.configure(textvariable=self.from_date)
         self.date_entry_to.entry.configure(textvariable=self.to_date)
+        # Plot Checkboxes
+        weight_checkbox = ttk.Checkbutton(graph_settings, text="Plot Weight", variable=self.plot_weight_var, command=self.plot_selected_exercise)
+        reps_checkbox = ttk.Checkbutton(graph_settings, text="Plot Reps", variable=self.plot_reps_var, command=self.plot_selected_exercise)
+        # Labels
         dash_label = ttk.Label(graph_settings, text=">>>", font="Helvetica 15 bold")
+        dropdown_label = ttk.Label(graph_settings, text="Choose Exercise:", font="Helvetica 12 bold")
+        # Exercises Dropdown
+        self.exercise_dropdown2 = ttk.Combobox(graph_settings, state="readonly", font="Helvetica 10 bold")
+        self.exercise_dropdown2.bind("<<ComboboxSelected>>", self.plot_selected_exercise)
 
         # Place settings widgets
-
         self.date_entry_from.pack(side="left", fill="both", padx=10)
         dash_label.pack(side="left", fill="both", padx=10)
         self.date_entry_to.pack(side="left", fill="both", padx=10)
-
-
-        # Add trace to date entries
-        #self.date_var.trace_add("write", lambda name, index, mode, date_var = self.from_date: #self.update_date(self.date_var))
-        #self.date_var.trace_add("write", lambda name, index, mode, date_var = self.to_date: #self.update_date(self.date_var))
-
-
+        weight_checkbox.pack(side="left", fill="both", padx=5)
+        reps_checkbox.pack(side="left", fill="both", padx=5)
+        dropdown_label.pack(side="left", fill="both", padx=5)
+        self.exercise_dropdown2.pack(side="left", padx=10)
 
         # Create and pack Graph Widget
-        fig = Figure(dpi=100)
-        ax = fig.add_subplot(111)
-        x = [0, 1, 2, 3, 4, 5]
-        y = [0, 1, 4, 9, 16, 25]
-        ax.plot(x, y)
-        ax.set_xlabel("Time axis")
-        ax.set_ylabel("Weight/Reps axis")
-        ax.set_title("Weight/Reps Over Time")
-        ax.invert_xaxis()
-        fig.set_facecolor('dimgrey')
-        ax.set_facecolor('grey')
+        self.fig = Figure(dpi=100)
+        self.ax = self.fig.add_subplot(111)
+        self.ax.set_xlabel("Time axis")
+        self.ax.set_ylabel("Weight/Reps axis")
+        self.ax.set_title("Weight/Reps Over Time")
+        self.ax.invert_xaxis()
+        self.fig.set_facecolor('dimgrey')
+        self.ax.set_facecolor('grey')
 
-        g_canvas = FigureCanvasTkAgg(fig, master=graph_frame)
-        g_canvas.draw()
-        g_canvas.get_tk_widget().pack(fill="both", expand=True)
+        self.g_canvas = FigureCanvasTkAgg(self.fig, master=graph_frame)
+        self.g_canvas.draw()
+        self.g_canvas.get_tk_widget().pack(fill="both", expand=True)
 
     def settings_widgets(self):
         pass
