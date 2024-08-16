@@ -5,7 +5,8 @@ WorkoutTracker is a Python GUI application using TKinter(specifically tkbootstra
 ## Installation
 
 1. Install or update Python.
-2. Navigate to install location and make sure you have all the requirements.
+2. Clone the repo to your location of choice or download as a zip file and extract.
+2. Navigate to your install location in your operating system's terminal and make sure you have all the requirements.
     * ```
       pip install -r requirements.txt
 3. Launch from main.py in the /src directory or from the .bat/.sh files in the main directory.
