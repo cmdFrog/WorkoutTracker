@@ -1,6 +1,6 @@
 # WorkoutTracker
 
-WorkoutTracker is a Python GUI application using TKinter(specifically tkbootstrap) for recording the reps and weight for an exercise on a given date. Your data can then be graphed to visualize progress. More features are planned for the future.
+WorkoutTracker is a Python GUI application using TKinter (specifically ttkbootstrap) for recording the reps and weight for an exercise on a given date. Your data can then be graphed to visualize progress. More features are planned for the future.
 
 ## Installation
 
